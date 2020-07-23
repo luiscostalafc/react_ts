@@ -1,63 +1,68 @@
-import React from 'react';
-import {FiChevronRight} from  'react-icons/fi';
+import React, { useState, FormEvent } from 'react';
+import { FiChevronRight } from 'react-icons/fi';
+import api from '../../services/api';
 
 import logoImg from '../../assets/logo.svg';
 
 import { Title, Form, Repositories } from './styles';
 
-const Dashboard: React.FC = () => {
-   return (
-     <>
-     <img src={logoImg} alt="Github Explore" />
-     <Title>Explore repositórios no Github</Title>
-     <Form>
-     <input placeholder="Digite o nome de repositório"/>
-     <button type="submit">Pesquisar</button>
-     </Form>
-
-     <Repositories>
-       <a href="teste">
-         <img
-         src="https://avatars3.githubusercontent.com/u/46203983?s=460&u=0d2997e7bab81617e224941bcfc0aff94d10436f&v=4"
-         alt="Luis Costa"
-         />
-         <div>
-           <strong>rocketseat/unform</strong>
-           <p>Easy peasy highly scalable ReactJS & React Native forms!</p>
-         </div>
-
-         <FiChevronRight size={20}/>
-
-       </a>
-       <a href="teste">
-         <img
-         src="https://avatars3.githubusercontent.com/u/46203983?s=460&u=0d2997e7bab81617e224941bcfc0aff94d10436f&v=4"
-         alt="Luis Costa"
-         />
-         <div>
-           <strong>rocketseat/unform</strong>
-           <p>Easy peasy highly scalable ReactJS & React Native forms!</p>
-         </div>
-
-         <FiChevronRight size={20}/>
-
-       </a>
-       <a href="teste">
-         <img
-         src="https://avatars3.githubusercontent.com/u/46203983?s=460&u=0d2997e7bab81617e224941bcfc0aff94d10436f&v=4"
-         alt="Luis Costa"
-         />
-         <div>
-           <strong>rocketseat/unform</strong>
-           <p>Easy peasy highly scalable ReactJS & React Native forms!</p>
-         </div>
-
-         <FiChevronRight size={20}/>
-
-       </a>
-     </Repositories>
-     </>
-   )
+interface Repository {
+  full_name: string;
+  description: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
 }
+
+const Dashboard: React.FC = () => {
+  const [newRepo, setNewRepo] = useState('');
+  const [repositories, setRepositories] = useState<Repository[]>([]);
+
+  async function handleAddRepository(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
+    event.preventDefault();
+
+    const response = await api.get<Repository>(`repos/${newRepo}`);
+
+    const repository = response.data;
+
+    setRepositories([...repositories, repository]);
+    setNewRepo('');
+  }
+
+  return (
+    <>
+      <img src={logoImg} alt="Github Explore" />
+      <Title>Explore repositórios no Github</Title>
+      <Form onSubmit={handleAddRepository}>
+        <input
+          value={newRepo}
+          onChange={e => setNewRepo(e.target.value)}
+          placeholder="Digite o nome de repositório"
+        />
+        <button type="submit">Pesquisar</button>
+      </Form>
+
+      <Repositories>
+        {repositories.map(repository => (
+          <a key={repository.full_name} href="teste">
+          <img
+            src={repository.owner.avatar_url}
+            alt={repository.owner.login}
+          />
+          <div>
+            <strong>{repository.full_name}</strong>
+            <p>{repository.description}</p>
+          </div>
+
+          <FiChevronRight size={20} />
+        </a>
+        ))}
+      </Repositories>
+    </>
+  );
+};
 
 export default Dashboard;
